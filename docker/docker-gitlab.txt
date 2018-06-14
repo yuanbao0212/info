@@ -1,0 +1,59 @@
+下载Gitlab
+配置好加速器之后，下载就很快了。直接执行下面的命令，稍等片刻之后，Docker就会将Gitlab下载好了。
+
+sudo docker pull gitlab/gitlab-ce:latest
+启动Gitlab
+用下面的命令启动一个默认配置的Gitlab。如果我们只在本机测试使用的话，将hostname替换为localhost。如果需要让外部系统也能访问的话使用外网IP地址。
+
+sudo docker run --detach \
+    --hostname gitlab.example.com \
+    --publish 443:443 --publish 80:80 --publish 22:22 \
+    --name gitlab \
+    --restart always \
+    --volume /srv/gitlab/config:/etc/gitlab \
+    --volume /srv/gitlab/logs:/var/log/gitlab \
+    --volume /srv/gitlab/data:/var/opt/gitlab \
+    gitlab/gitlab-ce:latest
+首次启动可能比较慢，需要等待一分钟左右的时间。我们可以使用sudo docker ps命令查看当前所有Docker容器的状态。当它的状态由starting变为运行时间时，说明成功启动了。我们直接使用上面配置的IP地址（如localhost）在浏览器中访问即可。
+
+初次使用需要我们创建默认管理员密码，随便指定一个就行了。然后我们需要注册一个普通用户。以后的使用方法和Github这样的工具很相似了。
+
+配置Gitlab
+刚刚启动Gitlab的时候需要我们输入一个密码，这个密码是管理员用户的密码。我们在登录那里使用root作为用户名，然后用刚刚设置的密码，就可以以管理员身份登录Gitlab。
+
+登录进去之后，点击右上角的齿轮图标，即可进入到管理员页面。在这里我们可以设置很多东西。比如说，默认情况下每个用户只能创建10个仓库，我们可以改变这个设置。在管理员页面点击右面的齿轮，再点击设置，就会进入到系统设置中。然后找到Default projects limit一项，我们给它设个小目标，设它一个亿，这样就相当于无限仓库了。当然如果你实际硬盘满了也就不能在创建更多项目了。
+
+如果这些配置还是不能满足你的需求的时候，还可以直接配置Gitlab。首先进入到Docker环境中。我们使用下面的命令进入Docker环境的bash中。gitlab是刚刚指定的Gitlab名称。
+
+sudo docker exec -it gitlab /bin/bash
+然后就进入了Docker的环境中，我们可以把它当作一个独立的系统来使用。然后编辑/etc/gitlab/gitlab.rb文件，这是Gitlab的全局配置文件。所有选项都可以在这里配置。
+
+nano /etc/gitlab/gitlab.rb
+详细的配置方法我也不会，直接看官方文档吧。
+
+更新Gitlab
+以后如果需要更新Gitlab版本，首先需要停止并删除当前的Gitlab实例。
+
+sudo docker stop gitlab
+sudo docker rm gitlab
+然后在拉取最新版的Gitlab。
+
+sudo docker pull gitlab/gitlab-ce:latest
+然后在使用上次的配置运行Gitlab即可。不用担心数据会丢失。只要你的volume参数指定还和上次一样，Gitlab就会自动读取这些配置。
+
+sudo docker run --detach \
+--hostname gitlab.example.com \
+--publish 443:443 --publish 80:80 --publish 22:22 \
+--name gitlab \
+--restart always \
+--volume /srv/gitlab/config:/etc/gitlab \
+--volume /srv/gitlab/logs:/var/log/gitlab \
+--volume /srv/gitlab/data:/var/opt/gitlab \
+gitlab/gitlab-ce:latest
+最后来看看使用Docker的优势。还是在Gitlab的Bash中。我们依次输入下面的命令，看看有什么反应。
+
+ruby --version
+git --version
+redis-cli --version
+psql --version
+不出意外的话应该会显示对应软件的版本。我们看到Gitlab使用了4个开源软件或运行环境：ruby、git、redis和postgresql。如果我们手动安装Gitlab的话，这几个软件也必须分别安装和配置好。这个任务的难度可是非常大的。而且如果需要在多台机器上配置，那么任务量就更大了。

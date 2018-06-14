@@ -14,6 +14,9 @@ firewall-cmd --zone=public --add-port=80/tcp --permanent
 
 firewall-cmd --zone=public --add-port=8080/tcp --permanent
 
+firewall-cmd --zone=public --add-port=10011/tcp --permanent
+firewall-cmd --zone=public --add-port=10012/tcp --permanent
+
 
 
 
@@ -27,3 +30,5 @@ firewall-cmd --zone=public --add-port=8080/tcp --permanent
 systemctl stop firewalld.service #停止firewall
 systemctl disable firewalld.service #禁止firewall开机启动
 firewall-cmd --state #查看默认防火墙状态（关闭后显示notrunning，开启后显示running）
+
+systemctl restart firewalld.service

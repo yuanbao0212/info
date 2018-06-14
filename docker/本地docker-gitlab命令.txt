@@ -1,0 +1,13 @@
+docker volume create gitlab-config
+docker volume create gitlab-logs
+docker volume create gitlab-data
+
+docker run -d \
+--hostname 192.168.1.130 \
+--name gitlab \
+-p 10010:443 -p 10011:80 -p 10012:22 \
+--restart always \
+-v gitlab-config:/etc/gitlab \
+-v gitlab-logs:/var/log/gitlab \
+-v gitlab-data:/var/opt/gitlab \
+gitlab/gitlab-ce:latest
