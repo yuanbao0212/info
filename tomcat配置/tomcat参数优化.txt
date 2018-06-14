@@ -1,0 +1,49 @@
+
+<Executor
+name="tomcatThreadPool"
+namePrefix="catalina-exec-"
+maxThreads="1000"
+minSpareThreads="100"
+maxIdleTime="60000"
+prestartminSpareThreads="true"
+maxQueueSize="1000"
+/>
+
+<Connector
+ executor="tomcatThreadPool"
+ port="8080"
+ protocol="org.apache.coyote.http11.Http11Nio2Protocol"
+ connectionTimeout="20000"
+ maxConnections="1000"
+ redirectPort="8443"
+ enableLookups="false"
+ acceptCount="1000"
+ maxPostSize="10485760"
+ maxHttpHeaderSize="8192"
+ processorCache="500"
+ maxKeepAliveRequests="100"
+ keepAliveTimeout="300000"
+ compression="off"
+ disableUploadTimeout="true"
+ compressionMinSize="2048"
+ acceptorThreadCount="2"
+ compressableMimeType="text/html,text/xml,text/plain,text/css,text/javascript,application/javascript"
+ URIEncoding="utf-8"
+/>
+
+protocol，Tomcat 8 设置 nio2 更好：org.apache.coyote.http11.Http11Nio2Protocol（如果这个用不了，就用下面那个）
+protocol，Tomcat 6、7 设置 nio 更好：org.apache.coyote.http11.Http11NioProtocol
+
+BIO：一个线程处理一个请求。缺点：并发量高时，线程数较多，浪费资源。Tomcat7或以- 下，在Linux系统中默认使用这种方式。
+NIO：利用Java的异步IO处理，可以通过少量的线程处理大量的请求。Tomcat8在Linux系统中默认使用这种方式。
+APR：即Apache Portable Runtime，从操作系统层面解决io阻塞问题。Tomcat7或Tomcat8在Win7或以上的系统中启动默认使用这种方式。Linux如果安装了apr和native，Tomcat直接启动就支持apr。（安装方法：http://www.cnblogs.com/nb-blog/p/5278502.html）
+
+enableLookups，禁用DNS查询
+
+acceptCount，指定当所有可以使用的处理请求的线程数都被使用时，可以放到处理队列中的请求数，超过这个数的请求将不予处理，默认设置 100
+maxPostSize，以 FORM URL 参数方式的 POST 提交方式，限制提交最大的大小，默认是 2097152(2兆)，它使用的单位是字节。10485760 为 10M。如果要禁用限制，则可以设置为 -1。
+acceptorThreadCount，用于接收连接的线程的数量，默认值是1。一般这个指需要改动的时候是因为该服务器是一个多核CPU，如果是多核 CPU 一般配置为 2.
+maxHttpHeaderSize，http请求头信息的最大程度，超过此长度的部分不予处理。一般8K。
+compression：传输时是压缩。
+compressionMinSize：压缩的大小
+noCompressionUserAgents：不启用压缩的浏览器
