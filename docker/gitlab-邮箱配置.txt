@@ -1,0 +1,23 @@
+系统邮箱设置
+系统邮箱即为GitLab CE安装的时候配置的邮箱，用来给用户发送系统邮件。如果安装了sendmail或者postfix等邮箱，则可配置相应的通用邮箱的设置即可，因为我是使用官方的docker镜像安装的，所以并没有安装sendmail和postman，所以需要配置SMTP来启用邮箱功能。
+
+通用邮箱设置
+不管是使用sendmail或者SMTP都需要做如下的配置。按之前的方式，进入容器，修改配置文件。不清楚的可以查看GitLab CE 搭建小结。
+
+//进入容器
+$ docker exec -it gitlab bash
+// 修改配置文件
+$ vim /etc/gitlab/gitlab.rb
+大体有以下几项配置：
+
+### Email Settings
+# gitlab_rails['gitlab_email_enabled'] = true //是否开启系统邮箱，默认开启
+# gitlab_rails['gitlab_email_from'] = 'example@example.com'
+// 系统邮箱发件人
+# gitlab_rails['gitlab_email_display_name'] = 'Example'
+// 显示的发件人名称，默认GitLab
+# gitlab_rails['gitlab_email_reply_to'] = 'noreply@example.com'
+// 设置收件邮箱
+# gitlab_rails['gitlab_email_subject_suffix'] = ''
+// 邮件标题后缀
+gitlab_email_from 用来设置发件人的邮箱,如果是配置SMTP，这个邮箱必须和校验的邮箱一致，后续会再提到。其他的几项可以按默认设置,可以按自己的需求自定义。收件邮箱我觉得需求不大，就不配置了。
