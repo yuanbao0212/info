@@ -1,5 +1,6 @@
 解决方法就是禁用Hyper-V。途径有多种：
 
-第一种方法：使用管理员权限运行命令：bcdedit /set hypervisorlaunchtype off。
-
-                   对应的打开Hyper-V的命令：bcdedit /set hypervisorlaunchtype auto
+第一种方法：使用管理员权限运行命令：
+bcdedit /set hypervisorlaunchtype off。
+对应的打开Hyper-V的命令：
+bcdedit /set hypervisorlaunchtype auto
