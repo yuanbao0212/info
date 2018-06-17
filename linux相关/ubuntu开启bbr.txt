@@ -1,0 +1,64 @@
+如何检测 BBR 是否开启
+在开始之前，我们可以先看看 BBR 是否已经启用了（没准你用的云主机商已经做了这件事情）：
+
+执行这条指令可以返回当前 Linux 内核可以使用的 TCP 拥堵控制算法：
+
+sysctl net.ipv4.tcp_available_congestion_control
+
+在我的 Server 上，返回了：
+
+net.ipv4.tcp_available_congestion_control = cubic reno
+很明显，默认的 Ubuntu 16.04 用的是 Linux 4.4.0 内核，自然是看不到 BBR 的。
+
+我们再确认一次当前使用的控制算法：
+
+sysctl net.ipv4.tcp_congestion_control
+
+返回内容是：
+
+net.ipv4.tcp_congestion_control = cubic
+没错，就是使用 cubic 这个默认的算法。接下去我们通过最标准的模式来为这台 Ubuntu 16.04 启用 BBR。
+
+为 Ubuntu 16.04 安装 4.10 + 新内核
+如果你简单地了解过 BBR，那么就知道 BBR 只能配合 Linux Kernel 4.10 以上内核才能使用。但是在 Ubuntu 16.04 上怎么使用 4.10 呢？难道要手动下载和安装吗？
+
+不能！这会有一个安全隐患，手动下载安装的新内核，无法保证后续能得到及时的安全更新。那么怎么办？这里我推荐使用 HWE 版本的内核，它就在官方源里。
+
+HWE，即：HareWare Enablement，是专门为在老的系统上支持新的硬件而推出的内核。你可以像安装其他软件包一样在 Ubuntu 16.04 里非常容易的安装它：
+
+sudo apt-get install linux-generic-hwe-16.04
+
+只要这样，就 OK 了…是不是超简单？这里还有一个 Tips：假如你想使用更激进的新内核，可以使用 edge 版本：
+
+sudo apt-get install linux-generic-hwe-16.04-edge
+
+这两个软件包不同的是，前一个安装的是 4.10 内核，后一个安装的是 4.11，充分满足想追求使用新内核的同学的需求。
+
+安装好以后重启电脑，然后输入：
+
+uname -a
+
+看看是不是变成 4.10 内核了？
+
+Linux hostname 4.10.0-33-generic
+为 Ubuntu 16.04 启用 BBR
+有了新内核以后，我们就可以为新内核装载 BBR 模块了：
+
+sudo modprobe tcp_bbr
+
+echo "tcp_bbr" | sudo tee -a /etc/modules-load.d/modules.conf
+
+装载后，再执行 sysctl net.ipv4.tcp_available_congestion_control 命令，你就可以看到 BBR 出现在输出结果里了。
+
+接下去再正式启用它：
+
+echo "net.core.default_qdisc=fq" | sudo tee -a /etc/sysctl.conf
+
+echo "net.ipv4.tcp_congestion_control=bbr" | sudo tee -a /etc/sysctl.conf
+
+sudo sysctl -p
+
+执行完这几条指令后，再用 sysctl net.ipv4.tcp_congestion_control 验证一下，看到返回结果是：
+
+net.ipv4.tcp_congestion_control = bbr
+It works！
