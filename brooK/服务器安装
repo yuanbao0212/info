@@ -1,0 +1,95 @@
+Brook是一个由 Go语言编写的跨平台代理软件，支持 Linux/MacOS/Windows/Android/iOS 各个平台。
+
+同时因为 Go语言的特性，在操作使用上非常简单，本篇主要介绍 Brook服务端中 Brook模式的使用方法。
+
+Brook Github项目：https://github.com/txthinking/brook
+
+Brook 客户端教程：https://doub.io/brook-jc2/
+
+Brook 服务端脚本：『原创』一个优秀的跨平台 Socks5代理软件 —— Brook 一键安装管理脚本
+
+安装步骤
+首先建立并进入文件夹（假设你当前目录是 /root ，那么 Brook的目录就是 /root/brook ）：
+
+mkdir brook && cd brook
+然后获取最新的版本号：
+
+brook_ver=$(wget --no-check-certificate -qO- https://api.github.com/repos/txthinking/brook/releases | grep -o '"tag_name": ".*"' |head -n 1| sed 's/"//g' | sed 's/tag_name: //g') && echo ${brook_ver}
+执行完后会输出获取的最新版本号，比如 v20180401 这样的日期格式，如果返回是空或者其他错误的内容，那么就代表获取失败。
+
+获取失败的情况请去 Github 获取最新的版本号，例如 v20180401 ，然后执行 brook_ver=v20180401 （自己替换版本号）即可继续下面的下载步骤。
+
+使用 uname -m 命令来判断VPS的位数，如果返回 x86_64 那就是64位，如果返回 i386或i686 那就是32位。
+
+# 64位系统使用这个：
+wget -N --no-check-certificate "https://github.com/txthinking/brook/releases/download/${brook_ver}/brook"
+
+# 32位系统使用这个：
+wget -N --no-check-certificate "https://github.com/txthinking/brook/releases/download/${brook_ver}/brook_linux_386" && mv brook_linux_386 brook
+最后只需要赋予一下执行权限即可继续看下面的使用方法了。
+
+chmod +x brook
+
+使用方法
+首先我们来查看一下帮助文档，命令： ./brook --help 。
+
+参数解释
+点击展开 查看参数解释
+
+# 模式命令:
+server         以 Brook 协议 服务器模式 运行
+servers        以 Brook 协议 多服务器模式 运行
+client         以 Brook 协议 客户端模式 运行
+streamserver   以 Brook stream 协议 服务器模式 运行
+streamservers  以 Brook stream 协议 多服务器模式 运行
+streamclient   以 Brook stream 协议 客户端模式 运行
+ssserver       以 Shadowsocks 协议 服务器模式 运行，加密方式仅支持 aes-256-cfb
+ssservers      以 Shadowsocks 协议 多服务器模式 运行，加密方式仅支持 aes-256-cfb
+ssclient       以 Shadowsocks 协议 客户端模式 运行，加密方式仅支持 aes-256-cfb
+socks5         以 Socks5 协议 服务器模式 运行
+relay          以 单中继/中转 模式运行
+relays         以 多中继/中转 模式运行
+qr             输出 Brook 二维码
+socks5tohttp   将socks5转换为http代理
+help, h        显示帮助，命令列表说明
+
+# 全局参数:
+--debug, -d               启用调试功能，显示更多日志
+--listen value, -l value  监听地址(默认: ":6060")
+--help, -h                显示帮助
+--version, -v             打印版本
+
+# 账号参数:
+--listen value, -l value    服务器监听地址，如: 0.0.0.0:1080
+--password value, -p value  服务器密码
+本篇文章主要介绍 Brook模式的使用方法，其他模式会另开文章写的。
+
+Brook 自主研发的混淆协议有两个：
+
+server
+# Brook 新版 默认混淆协议
+
+streamserver
+# Brook 旧版 混淆协议，根据反馈，使用后可能会速度降低，可能适合于使用 Brook新版混淆协议 速度慢的人。
+单端口启动
+注意：因为前面的安装步骤已经进入了 Brook目录，所以这里不需要再进入目录了。但是以后需要启动Brook的时候，请进入Brook的文件夹，假设你的安装目录是 /root/brook ，那么就使用这个命令 cd /root/brook
+
+# 启动一个单端口 Brook协议模式
+# 监听端口为 2333，密码为 doub.io。
+nohup ./brook server -l :2333 -p "doub.io" > /dev/null 2>&1 &
+
+# 如果你使用 Brook的新版混淆协议[server]速度慢，那么可以尝试旧版混淆协议[streamserver]（注意：此混淆协议可能会速度降低，仅适合使用新版协议慢的）
+nohup ./brook streamserver -l :2333 -p "doub.io" > /dev/null 2>&1 &
+多端口启动
+# 启动一个多端口 Brook协议模式
+# 账号分别为：
+#     监听端口 2333，密码 doub.io1
+#     监听端口 6666，密码 doub.io2
+#     监听端口 8888，密码 doub.io3
+
+nohup ./brook servers -l ":2333 doub.io1" -l ":6666 doub.io2" -l ":8888 doub.io3" > /dev/null 2>&1 &
+
+# 如果你使用 Brook的新版混淆协议[server]速度慢，那么可以尝试旧版混淆协议[streamserver]（注意：此混淆协议可能会速度降低，仅适合使用新版协议慢的）
+nohup ./brook streamservers -l ":2333 doub.io1" -l ":6666 doub.io2" -l ":8888 doub.io3" > /dev/null 2>&1 &
+停止Brook
+kill -9 $(ps -ef|grep "brook"|grep -v grep|awk '{print $2}')
