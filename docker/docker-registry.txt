@@ -1,0 +1,9 @@
+docker pull registry
+docker volume create registry-data
+
+docker run -d \
+    -p 5000:5000 \
+    -v registry-data:/var/lib/registry \
+    registry
+
+firewall-cmd --zone=public --add-port=5000/tcp --permanent
